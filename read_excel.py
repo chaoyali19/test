@@ -1,89 +1,70 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Excel文件读取脚本
-使用pandas库读取和处理Excel文件
+使用pandas库读取Excel文件并显示内容
 """
 
 import pandas as pd
 import sys
 import os
 
-
-def read_excel_file(file_path, sheet_name=0):
+def read_excel_file(file_path):
     """
-    读取Excel文件
+    读取Excel文件并显示内容
     
-    参数:
+    Args:
         file_path (str): Excel文件路径
-        sheet_name (str/int): 工作表名戗索引，默认第一个工作表
-    
-    返回:
-        DataFrame: 包含Excel数据的DataFrame对象
     """
     try:
         # 检查文件是否存在
         if not os.path.exists(file_path):
             print(f"错误: 文件 '{file_path}' 不存在")
-            return None
+            return
         
         # 读取Excel文件
         print(f"正在读取Excel文件: {file_path}")
-        df = pd.read_excel(file_path, sheet_name=sheet_name)
         
-        # 显示基本信息
-        print(f"\n文件读取成功!")
-        print(f"数据形状: {df.shape}")
-        print(f"列名: {list(df.columns)}")
-        print(f"\n前5行数据:")
-        print(df.head())
+        # 读取所有工作表
+        excel_file = pd.ExcelFile(file_path)
+        sheet_names = excel_file.sheet_names
         
-        return df
+        print(f"\nExcel文件包含 {len(sheet_names)} 个工作表:")
+        for i, sheet in enumerate(sheet_names, 1):
+            print(f"  {i}. {sheet}")
         
+        # 读取每个工作表的内容
+        for sheet_name in sheet_names:
+            print(f"\n{'='*50}")
+            print(f"工作表: {sheet_name}")
+            print(f"{'='*50}")
+            
+            # 读取工作表数据
+            df = pd.read_excel(file_path, sheet_name=sheet_name)
+            
+            # 显示基本信息
+            print(f"数据形状: {df.shape}")
+            print(f"列名: {list(df.columns)}")
+            
+            # 显示前几行数据
+            print("\n前5行数据:")
+            print(df.head())
+            
+            # 显示数据类型信息
+            print("\n数据类型:")
+            print(df.dtypes)
+            
     except Exception as e:
         print(f"读取Excel文件时出错: {e}")
-        return None
-
-
-def save_to_csv(df, output_path):
-    """
-    将DataFrame保存为CSV文件
-    
-    参数:
-        df (DataFrame): 要保存的数据
-        output_path (str): 输出CSV文件路径
-    """
-    try:
-        df.to_csv(output_path, index=False, encoding='utf-8-sig')
-        print(f"\n数据已保存到: {output_path}")
-    except Exception as e:
-        print(f"保存CSV文件时出错: {e}")
-
 
 def main():
-    """
-    主函数
-    """
-    # 读取命令行参数
-    if len(sys.argv) > 1:
-        excel_file = sys.argv[1]
-    else:
-        # 如果没有提供参数，请用户输入
-        excel_file = input("请输入Excel文件路径: ")
+    """主函数"""
+    if len(sys.argv) != 2:
+        print("用法: python read_excel.py <excel_file_path>")
+        print("示例: python read_excel.py data.xlsx")
+        sys.exit(1)
     
-    # 读取Excel文件
-    df = read_excel_file(excel_file)
-    
-    if df is not None:
-        # 生成输出文件名
-        base_name = os.path.splitext(excel_file)[0]
-        csv_file = f"{base_name}.csv"
-        
-        # 保存为CSV
-        save_to_csv(df, csv_file)
-        
-        print(f"\n处理完成!")
-
+    file_path = sys.argv[1]
+    read_excel_file(file_path)
 
 if __name__ == "__main__":
     main()
